@@ -1,0 +1,305 @@
+{
+  "info": {
+    "name": "Faculty Presence Detection Backend",
+    "_postman_id": "fac-presence-collection-001",
+    "description": "Postman collection for the full FastAPI backend services.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "http://localhost:8000/", "protocol": "http", "host": ["localhost"], "port": "8000", "path": [""] }
+      }
+    },
+
+    /* ------------------ INFERENCE SERVICE ------------------ */
+    {
+      "name": "Inference Service",
+      "item": [
+
+        {
+          "name": "Init Models",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "http://localhost:8000/inference/init-models", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["inference", "init-models"] }
+          }
+        },
+
+        {
+          "name": "Detect Faces (File Upload)",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file" }
+              ]
+            },
+            "url": { "raw": "http://localhost:8000/inference/detect-faces", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["inference", "detect-faces"] }
+          }
+        },
+
+        {
+          "name": "Detect Faces (Base64)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"image_base64\": \"<base64_string>\"\n}"
+            },
+            "url": { "raw": "http://localhost:8000/inference/detect-faces", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["inference", "detect-faces"] }
+          }
+        },
+
+        {
+          "name": "Extract Embedding",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"image_base64\": \"<base64_string>\",\n  \"bbox\": [x1, y1, x2, y2]\n}"
+            },
+            "url": { "raw": "http://localhost:8000/inference/extract-embedding", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["inference", "extract-embedding"] }
+          }
+        }
+      ]
+    },
+
+    /* ------------------ RECOGNITION SERVICE ------------------ */
+    {
+      "name": "Recognition Service",
+      "item": [
+
+        {
+          "name": "Add Faculty (File Upload)",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file" },
+                { "key": "name", "type": "text", "value": "John Doe" }
+              ]
+            },
+            "url": { "raw": "http://localhost:8000/recognition/faculty/add", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["recognition", "faculty", "add"] }
+          }
+        },
+
+        {
+          "name": "Add Faculty (Base64)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"image_base64\": \"<base64>\",\n  \"name\": \"John Doe\"\n}"
+            },
+            "url": { "raw": "http://localhost:8000/recognition/faculty/add", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["recognition", "faculty", "add"] }
+          }
+        },
+
+        {
+          "name": "Delete Faculty",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"name\": \"John Doe\" }"
+            },
+            "url": { "raw": "http://localhost:8000/recognition/faculty/delete", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["recognition", "faculty", "delete"] }
+          }
+        },
+
+        {
+          "name": "Search Faculty",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"embedding\": [] }"
+            },
+            "url": { "raw": "http://localhost:8000/recognition/faculty/search", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["recognition", "faculty", "search"] }
+          }
+        },
+
+        {
+          "name": "Search Faculty (Specific)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"embedding\": [], \"target_name\": \"John Doe\" }"
+            },
+            "url": { "raw": "http://localhost:8000/recognition/faculty/search-specific", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["recognition", "faculty", "search-specific"] }
+          }
+        },
+
+        {
+          "name": "List Faculty",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "http://localhost:8000/recognition/faculty/list", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["recognition", "faculty", "list"] }
+          }
+        },
+
+        {
+          "name": "Clear Faculty DB",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "http://localhost:8000/recognition/faculty/clear-db", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["recognition", "faculty", "clear-db"] }
+          }
+        }
+      ]
+    },
+
+    /* ------------------ ATTENDANCE SERVICE ------------------ */
+    {
+      "name": "Attendance Service",
+      "item": [
+
+        {
+          "name": "Manual Attendance Check",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{ \"target_faculty\": \"John Doe\" }" },
+            "url": { "raw": "http://localhost:8000/attendance/attendance/manual", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["attendance", "attendance", "manual"] }
+          }
+        },
+
+        {
+          "name": "Start Auto Attendance",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "http://localhost:8000/attendance/attendance/auto/start", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["attendance", "attendance", "auto", "start"] }
+          }
+        },
+
+        {
+          "name": "Stop Auto Attendance",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "http://localhost:8000/attendance/attendance/auto/stop", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["attendance", "attendance", "auto", "stop"] }
+          }
+        },
+
+        {
+          "name": "Get Attendance Logs",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "http://localhost:8000/attendance/attendance/logs", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["attendance", "attendance", "logs"] }
+          }
+        },
+
+        {
+          "name": "Clear Logs",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "http://localhost:8000/attendance/attendance/logs/clear", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["attendance", "attendance", "logs", "clear"] }
+          }
+        },
+
+        {
+          "name": "Get Current Period",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "http://localhost:8000/attendance/schedule/current", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["attendance", "schedule", "current"] }
+          }
+        },
+
+        {
+          "name": "Get Next Period",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "http://localhost:8000/attendance/schedule/next", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["attendance", "schedule", "next"] }
+          }
+        }
+      ]
+    },
+
+    /* ------------------ CONFIG SERVICE ------------------ */
+    {
+      "name": "Config Service",
+      "item": [
+
+        {
+          "name": "Get Config",
+          "request": { "method": "GET", "url": "http://localhost:8000/config/config" }
+        },
+
+        {
+          "name": "Update Full Config",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"detection_time\": 30,\n  \"threshold\": 0.6,\n  \"sender_email\": \"\",\n  \"sender_password\": \"\",\n  \"email_receiver\": \"\",\n  \"notification_mode\": \"Absent Only\"\n}" },
+            "url": "http://localhost:8000/config/config/update"
+          }
+        },
+
+        {
+          "name": "Partial Config Update",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{ \"threshold\": 0.7 }" },
+            "url": "http://localhost:8000/config/config/update"
+          }
+        },
+
+        {
+          "name": "Reset Config",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8000/config/config/reset"
+          }
+        }
+      ]
+    },
+
+    /* ------------------ NOTIFICATION SERVICE ------------------ */
+    {
+      "name": "Notification Service",
+      "item": [
+
+        {
+          "name": "Send Email",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{ \"subject\": \"Test\", \"body\": \"Hello\" }" },
+            "url": "http://localhost:8000/notify/notify/send"
+          }
+        },
+
+        {
+          "name": "Test Notification",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8000/notify/notify/test"
+          }
+        },
+
+        {
+          "name": "Auto Notification Event",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"event\": \"Absent\",\n  \"name\": \"John Doe\",\n  \"confidence\": 0.1,\n  \"faculty\": \"John Doe\",\n  \"mode\": \"auto\"\n}" },
+            "url": "http://localhost:8000/notify/notify/auto"
+          }
+        }
+      ]
+    }
+
+  ]
+}

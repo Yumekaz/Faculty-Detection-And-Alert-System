@@ -1,0 +1,29 @@
+fastapi==0.110.0
+uvicorn[standard]==0.29.0
+
+# Core CV + AI
+opencv-python==4.9.0.80
+ultralytics==8.1.0
+insightface==0.7.3
+onnxruntime==1.17.0
+
+# Face Recognition + Vector Search
+faiss-cpu==1.7.4
+
+# Image Encoding / Utils
+numpy==1.26.4
+pillow==10.2.0
+
+# Data & Log Management
+pandas==2.2.1
+
+# Email
+secure-smtplib==0.1.1
+
+# Web / Requests
+requests==2.31.0
+
+# CORS & Pydantic
+python-multipart==0.0.9
+pydantic==2.6.1
+pydantic-settings==2.1.0

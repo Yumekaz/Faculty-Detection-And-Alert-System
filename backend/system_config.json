@@ -1,0 +1,8 @@
+{
+    "detection_time": 10,
+    "threshold": 0.6,
+    "sender_email": "",
+    "sender_password": "",
+    "email_receiver": "",
+    "notification_mode": "none"
+}
