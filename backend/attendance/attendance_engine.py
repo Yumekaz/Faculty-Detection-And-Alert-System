@@ -12,7 +12,9 @@ from ..inference.embeddings import get_face_embedding
 from ..recognition.faculty_manager import search_faculty, search_faculty_specific
 from ..recognition.faiss_store import load_faculty_database
 
-LOG_FILE = "attendance_log.csv"
+# Path relative to the backend directory (attendance/../)
+_BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+LOG_FILE = os.path.join(_BACKEND_DIR, "attendance_log.csv")
 
 # Initialize log file if it doesn't exist
 if not os.path.exists(LOG_FILE):

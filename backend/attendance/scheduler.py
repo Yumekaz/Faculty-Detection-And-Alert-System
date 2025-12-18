@@ -2,7 +2,9 @@ import json
 import os
 from datetime import datetime
 
-SCHEDULE_FILE = "schedule.json"
+# Path relative to the backend directory (attendance/../)
+_BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SCHEDULE_FILE = os.path.join(_BACKEND_DIR, "schedule.json")
 
 # Default Schedule for initialization
 DEFAULT_SCHEDULE = [

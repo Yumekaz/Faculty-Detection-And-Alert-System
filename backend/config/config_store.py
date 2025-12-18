@@ -1,7 +1,9 @@
 import os
 import json
 
-CONFIG_FILE = "system_config.json"
+# Path relative to the backend directory (config/../)
+_BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CONFIG_FILE = os.path.join(_BACKEND_DIR, "system_config.json")
 DEFAULT_RECEIVER = "example_receiver@mail.com"
 
 # Default configuration dictionary

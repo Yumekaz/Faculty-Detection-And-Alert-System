@@ -47,22 +47,28 @@ def parse_image_input(file: Optional[UploadFile], payload: Optional[ImagePayload
     else:
         raise HTTPException(status_code=400, detail="No image provided. Send file or base64.")
 
-def ensure_models_loaded():
-    if MODELS["yolo"] is None or MODELS["insightface"] is None:
+def ensure_models_loaded(require_insightface=False):
+    """Ensure YOLO model is loaded. InsightFace is optional unless require_insightface=True."""
+    if MODELS["yolo"] is None:
         raise HTTPException(status_code=503, detail="Models not initialized. Call /init-models first.")
+    if require_insightface and MODELS["insightface"] is None:
+        raise HTTPException(status_code=503, detail="InsightFace model not available. Face recognition features are limited.")
 
 # --- Endpoints ---
 
 @router.post("/init-models")
 async def init_models():
     """Initialize models globally"""
-    yolo, app = model_loader.load_models()
-    if yolo is None or app is None:
-        raise HTTPException(status_code=500, detail="Failed to load models")
+    yolo, insightface_app = model_loader.load_models()
+    if yolo is None:
+        raise HTTPException(status_code=500, detail="Failed to load YOLO model")
     
     MODELS["yolo"] = yolo
-    MODELS["insightface"] = app
-    return {"status": "success", "message": "Models loaded successfully"}
+    MODELS["insightface"] = insightface_app  # May be None if InsightFace models unavailable
+    
+    if insightface_app is None:
+        return {"status": "partial", "message": "YOLO loaded. InsightFace unavailable - face recognition limited."}
+    return {"status": "success", "message": "All models loaded successfully"}
 
 @router.post("/detect-faces")
 async def detect_faces(

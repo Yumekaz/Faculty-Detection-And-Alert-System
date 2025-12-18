@@ -5,9 +5,11 @@ import numpy as np
 import glob
 
 # --- FILE/DIR CONFIG ---
-IMAGES_DIR = "faculty_db"
-EMBEDDINGS_FILE = "faculty_embeddings.pkl"
-FAISS_INDEX_FILE = "faculty_faiss.index"
+# Path relative to the backend directory (recognition/../)
+_BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+IMAGES_DIR = os.path.join(_BACKEND_DIR, "faculty_db")
+EMBEDDINGS_FILE = os.path.join(_BACKEND_DIR, "faculty_embeddings.pkl")
+FAISS_INDEX_FILE = os.path.join(_BACKEND_DIR, "faculty_faiss.index")
 
 # Ensure folders exist
 os.makedirs(IMAGES_DIR, exist_ok=True)

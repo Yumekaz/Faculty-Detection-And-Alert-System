@@ -4,11 +4,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 # --- Import Routers from All Microservices ---
-from inference.router import router as inference_router
-from recognition.router import router as recognition_router
-from attendance.router import router as attendance_router
-from config.router import router as config_router
-from notification.router import router as notification_router
+from .inference.router import router as inference_router
+from .recognition.router import router as recognition_router
+from .attendance.router import router as attendance_router
+from .config.router import router as config_router
+from .notification.router import router as notification_router
 
 
 # --- Create FastAPI App ---

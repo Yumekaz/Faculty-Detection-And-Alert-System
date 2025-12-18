@@ -180,5 +180,17 @@ backend/faculty_db/*.h5
 backend/faculty_db/*.pt
 backend/faculty_db/*.pth
 
+# FAISS index and embeddings (generated, user-specific data)
+backend/faculty_embeddings.pkl
+backend/faculty_faiss.index
+
+# InsightFace models (downloaded automatically, large files)
+backend/models/buffalo_l/
+backend/models/antelopev2/
+backend/models/*.onnx
+
+# YOLO models - EXPLICITLY TRACKED (small enough for GitHub, required for project)
+!backend/models/yolov8*.pt
+
 # Uploaded files (if any)
 uploads/
