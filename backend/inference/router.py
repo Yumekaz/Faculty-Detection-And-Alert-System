@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import base64
+from threading import Lock
 from fastapi import APIRouter, UploadFile, File, HTTPException, Body
 from pydantic import BaseModel
 from typing import List, Optional, Any
@@ -16,6 +17,7 @@ MODELS = {
     "yolo": None,
     "insightface": None
 }
+_MODEL_LOAD_LOCK = Lock()
 
 # --- Pydantic Models for Input ---
 class ImagePayload(BaseModel):
@@ -47,10 +49,20 @@ def parse_image_input(file: Optional[UploadFile], payload: Optional[ImagePayload
     else:
         raise HTTPException(status_code=400, detail="No image provided. Send file or base64.")
 
-def ensure_models_loaded(require_insightface=False):
-    """Ensure YOLO model is loaded. InsightFace is optional unless require_insightface=True."""
+def _load_models_if_needed():
+    """Load models once, safely across concurrent requests."""
     if MODELS["yolo"] is None:
-        raise HTTPException(status_code=503, detail="Models not initialized. Call /init-models first.")
+        with _MODEL_LOAD_LOCK:
+            if MODELS["yolo"] is None:
+                yolo, insightface_app = model_loader.load_models()
+                if yolo is None:
+                    raise HTTPException(status_code=503, detail="Failed to load YOLO model.")
+                MODELS["yolo"] = yolo
+                MODELS["insightface"] = insightface_app
+
+def ensure_models_loaded(require_insightface=False):
+    """Ensure YOLO model is loaded. InsightFace is required if require_insightface=True."""
+    _load_models_if_needed()
     if require_insightface and MODELS["insightface"] is None:
         raise HTTPException(status_code=503, detail="InsightFace model not available. Face recognition features are limited.")
 
@@ -98,7 +110,7 @@ async def extract_embedding(
     payload: Optional[EmbeddingPayload] = Body(None)
 ):
     """Extract embedding for a specific face bbox"""
-    ensure_models_loaded()
+    ensure_models_loaded(require_insightface=True)
     
     # 1. Parse Image
     if payload:

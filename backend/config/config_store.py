@@ -1,9 +1,5 @@
-import os
-import json
+from .. import db
 
-# Path relative to the backend directory (config/../)
-_BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CONFIG_FILE = os.path.join(_BACKEND_DIR, "system_config.json")
 DEFAULT_RECEIVER = "example_receiver@mail.com"
 
 # Default configuration dictionary
@@ -19,22 +15,14 @@ DEFAULT_CONFIG = {
 # --- CONFIG MANAGEMENT ---
 def load_config():
     """Load system configuration"""
-    try:
-        if os.path.exists(CONFIG_FILE):
-            with open(CONFIG_FILE, 'r') as f:
-                return json.load(f)
-    except (IOError, json.JSONDecodeError, OSError) as e:
-        print(f"Warning: Could not load config file: {e}")
-
-    # Return default config if file doesn't exist or error occurs
-    return DEFAULT_CONFIG.copy()
+    db.init_db(DEFAULT_CONFIG)
+    config = db.get_config()
+    if not config:
+        return DEFAULT_CONFIG.copy()
+    config.pop("id", None)
+    return config
 
 def save_config(config):
     """Save system configuration"""
-    try:
-        with open(CONFIG_FILE, 'w') as f:
-            json.dump(config, f, indent=2)
-        return True
-    except (IOError, OSError, TypeError) as e:
-        print(f"Error saving config: {e}")
-        return False
+    db.init_db(DEFAULT_CONFIG)
+    return db.save_config(config)

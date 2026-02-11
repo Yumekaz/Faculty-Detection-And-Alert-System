@@ -4,11 +4,16 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 # --- Import Routers from All Microservices ---
-from .inference.router import router as inference_router
-from .recognition.router import router as recognition_router
-from .attendance.router import router as attendance_router
-from .config.router import router as config_router
-from .notification.router import router as notification_router
+from inference.router import router as inference_router
+from recognition.router import router as recognition_router
+from attendance.router import router as attendance_router
+from config.router import router as config_router
+from notification.router import router as notification_router
+from dvr.router import router as dvr_router
+from audit.router import router as audit_router
+from corrections.router import router as corrections_router
+from health.router import router as health_router
+from export.router import router as export_router
 
 
 # --- Create FastAPI App ---
@@ -38,7 +43,8 @@ async def root():
             "/recognition",
             "/attendance",
             "/config",
-            "/notify"
+            "/notify",
+            "/dvr"
         ]
     }
 
@@ -49,6 +55,11 @@ app.include_router(recognition_router, prefix="/recognition", tags=["Recognition
 app.include_router(attendance_router, prefix="/attendance", tags=["Attendance & Schedule Service"])
 app.include_router(config_router, prefix="/config", tags=["Configuration Service"])
 app.include_router(notification_router, prefix="/notify", tags=["Notification Service"])
+app.include_router(dvr_router, prefix="/dvr", tags=["DVR Streaming Service"])
+app.include_router(audit_router, prefix="/audit", tags=["Audit Trail"])
+app.include_router(corrections_router, prefix="/corrections", tags=["Corrections"])
+app.include_router(health_router, tags=["Health"])
+app.include_router(export_router, prefix="/export", tags=["Export & Backup"])
 
 
 # --- Run with Uvicorn ---

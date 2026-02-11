@@ -11,6 +11,7 @@ from . import faiss_store
 from . import faculty_manager
 # Import global models from the inference module to pass to faculty_manager
 from ..inference.router import MODELS, ensure_models_loaded
+from ..audit.logger import log_event
 
 router = APIRouter()
 
@@ -66,7 +67,7 @@ async def add_faculty(
     Add a new faculty member.
     Requires Models to be initialized in the inference module.
     """
-    ensure_models_loaded()
+    ensure_models_loaded(require_insightface=True)
     
     # Handle inputs (Multipart or JSON)
     final_name = name
@@ -100,6 +101,7 @@ async def add_faculty(
             os.remove(file_path)
         raise HTTPException(status_code=500, detail=message)
 
+    log_event("faculty_add", "success", final_name, "admin")
     return {"status": "success", "message": message}
 
 @router.post("/faculty/delete")
@@ -126,6 +128,7 @@ async def delete_faculty(payload: DeleteFacultyPayload):
             raise HTTPException(status_code=404, detail=message)
         raise HTTPException(status_code=500, detail=message)
     
+    log_event("faculty_delete", "success", target_name, "admin")
     return {"status": "success", "message": message}
 
 @router.post("/faculty/search")
@@ -171,6 +174,7 @@ async def clear_database():
     if not success:
         raise HTTPException(status_code=500, detail=message)
         
+    log_event("faculty_clear_db", "success", message, "admin")
     return {
         "status": "success",
         "message": message,

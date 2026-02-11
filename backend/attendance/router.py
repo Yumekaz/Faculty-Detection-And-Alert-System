@@ -1,14 +1,15 @@
-import os
-import pandas as pd
 from typing import Optional, List
 from fastapi import APIRouter, HTTPException, Body
 from pydantic import BaseModel
 
 from . import attendance_engine
 from . import scheduler
+from .. import db
+from ..config.config_store import DEFAULT_CONFIG
 
 # Import global models from inference service to pass to engine
 from ..inference.router import MODELS, ensure_models_loaded
+from ..audit.logger import log_event
 
 router = APIRouter()
 
@@ -16,15 +17,22 @@ router = APIRouter()
 class ManualCheckPayload(BaseModel):
     target_faculty: Optional[str] = None
 
+class ScheduleItem(BaseModel):
+    period: int
+    start: str
+    end: str
+    faculty: str
+    subject: Optional[str] = None
+
 class ScheduleUpdatePayload(BaseModel):
-    schedule: List[dict]
+    schedule: List[ScheduleItem]
 
 # --- Endpoints ---
 
 @router.post("/attendance/manual")
 async def manual_attendance_check(payload: ManualCheckPayload):
     """Trigger a single immediate attendance check."""
-    ensure_models_loaded()
+    ensure_models_loaded(require_insightface=True)
     
     matched, name, confidence = attendance_engine.perform_attendance_check(
         yolo_model=MODELS["yolo"],
@@ -35,16 +43,18 @@ async def manual_attendance_check(payload: ManualCheckPayload):
         mode="manual"
     )
     
-    return {
+    result = {
         "matched": matched,
         "name": name,
         "confidence": confidence
     }
+    log_event("attendance_manual", "success", f"matched={matched} name={name}", payload.target_faculty or "system")
+    return result
 
 @router.post("/attendance/auto/start")
 async def start_auto_attendance():
     """Start the background automated attendance loop."""
-    ensure_models_loaded()
+    ensure_models_loaded(require_insightface=True)
     
     success, message = attendance_engine.start_auto_attendance_loop(
         yolo_model=MODELS["yolo"],
@@ -55,25 +65,23 @@ async def start_auto_attendance():
     if not success:
         raise HTTPException(status_code=400, detail=message)
         
+    log_event("attendance_auto_start", "success", message, "system")
     return {"status": "success", "message": message}
 
 @router.post("/attendance/auto/stop")
 async def stop_auto_attendance():
     """Stop the background automated attendance loop."""
     success, message = attendance_engine.stop_auto_attendance_loop()
+    log_event("attendance_auto_stop", "success", message, "system")
     return {"status": "success", "message": message}
 
 @router.get("/attendance/logs")
 async def get_logs():
     """Return logs as JSON records."""
-    if not os.path.exists(attendance_engine.LOG_FILE):
-        return {"logs": []}
-        
     try:
-        df = pd.read_csv(attendance_engine.LOG_FILE)
-        # Convert NaN to None for valid JSON
-        df = df.where(pd.notnull(df), None)
-        return {"logs": df.to_dict(orient="records")}
+        db.init_db(DEFAULT_CONFIG)
+        logs = db.list_attendance_logs()
+        return {"logs": logs}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error reading logs: {str(e)}")
 
@@ -81,8 +89,9 @@ async def get_logs():
 async def clear_logs():
     """Clear the attendance log file."""
     try:
-        # Re-initialize empty file
-        pd.DataFrame(columns=["timestamp", "status", "name", "confidence", "period", "mode"]).to_csv(attendance_engine.LOG_FILE, index=False)
+        db.init_db(DEFAULT_CONFIG)
+        db.clear_attendance_logs()
+        log_event("attendance_logs_clear", "success", "Logs cleared", "system")
         return {"status": "success", "message": "Logs cleared"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error clearing logs: {str(e)}")
@@ -106,5 +115,18 @@ async def get_full_schedule():
 
 @router.post("/schedule/update")
 async def update_schedule(payload: ScheduleUpdatePayload):
-    scheduler.save_schedule(payload.schedule)
+    cleaned = []
+    for item in payload.schedule:
+        if item.period <= 0:
+            raise HTTPException(status_code=400, detail="Period must be a positive number")
+        if not item.faculty or not item.faculty.strip():
+            raise HTTPException(status_code=400, detail="Faculty name is required")
+        if len(item.start) != 5 or len(item.end) != 5:
+            raise HTTPException(status_code=400, detail="Start/End must be HH:MM format")
+        if item.start >= item.end:
+            raise HTTPException(status_code=400, detail="Start time must be before end time")
+        cleaned.append(item.dict())
+
+    scheduler.save_schedule(cleaned)
+    log_event("schedule_update", "success", f"count={len(cleaned)}", "system")
     return {"status": "success", "message": "Schedule updated"}

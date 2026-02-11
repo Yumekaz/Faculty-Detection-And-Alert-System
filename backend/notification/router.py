@@ -5,6 +5,7 @@ from typing import Optional
 
 from . import emailer
 from ..config.config_store import load_config
+from ..audit.logger import log_event
 
 router = APIRouter()
 
@@ -39,8 +40,10 @@ async def send_notification(payload: EmailPayload):
     success = emailer.send_email(sender, password, payload.subject, payload.body, receiver)
     
     if not success:
+        log_event("email_send", "error", "Failed to send", receiver)
         raise HTTPException(status_code=500, detail="Failed to send email. Check server logs/credentials.")
         
+    log_event("email_send", "success", payload.subject, receiver)
     return {"status": "success", "message": "Email sent"}
 
 @router.post("/notify/test")
@@ -61,8 +64,10 @@ async def test_notification():
     success = emailer.send_email(sender, password, subject, body, receiver)
     
     if not success:
+        log_event("email_test", "error", "Test email failed", receiver)
         raise HTTPException(status_code=500, detail="Test email failed")
         
+    log_event("email_test", "success", "Test email sent", receiver)
     return {"status": "success", "message": f"Test email sent to {receiver}"}
 
 @router.post("/notify/auto")
@@ -87,6 +92,7 @@ async def auto_notification(payload: AutoNotificationPayload, background_tasks: 
             should_send = True
     
     if not should_send:
+        log_event("email_auto", "skipped", f"{payload.event} ignored", payload.faculty)
         return {"status": "skipped", "reason": f"Event '{payload.event}' ignored by mode '{mode_setting}'"}
 
     # Prepare Email Content
@@ -95,6 +101,7 @@ async def auto_notification(payload: AutoNotificationPayload, background_tasks: 
     receiver = config.get("email_receiver")
     
     if not sender or not password:
+         log_event("email_auto", "skipped", "Credentials missing", payload.faculty)
          return {"status": "skipped", "reason": "Credentials missing"}
 
     subject = f"Attendance Alert: {payload.event} - {payload.faculty}"
@@ -114,5 +121,6 @@ async def auto_notification(payload: AutoNotificationPayload, background_tasks: 
 
     # Use background task to avoid blocking the API response
     background_tasks.add_task(emailer.send_email, sender, password, subject, body, receiver)
+    log_event("email_auto", "queued", payload.event, payload.faculty)
     
     return {"status": "queued", "message": "Notification queued for delivery"}

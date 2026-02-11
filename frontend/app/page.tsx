@@ -1,233 +1,289 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
-import Link from "next/link";
-import NavBar from "@/components/NavBar";
-import { listFaculty } from "./api/recognition";
-import { getAttendanceLogs, type AttendanceLog } from "./api/attendance";
-import { getCurrentPeriod, type SchedulePeriod } from "./api/schedule";
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Mail, Lock, Eye, EyeOff, GraduationCap, Loader2, Sparkles, Shield, Zap, Users } from 'lucide-react';
+import { useAuth } from '@/lib/auth-context';
+import { MOCK_USERS, ROLE_CONFIG } from '@/lib/constants';
+import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
+import { Alert } from '@/components/ui/Alert';
+import { cn } from '@/lib/utils';
 
-export default function DashboardPage() {
-    const [facultyCount, setFacultyCount] = useState<number>(0);
-    const [recentLogs, setRecentLogs] = useState<AttendanceLog[]>([]);
-    const [currentPeriod, setCurrentPeriod] = useState<SchedulePeriod | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+// Animated background particles
+function ParticleBackground() {
+    return (
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            {/* Gradient Orbs */}
+            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-brand-500/20 rounded-full blur-3xl animate-float" />
+            <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-accent-purple/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '-3s' }} />
+            <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-accent-cyan/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '-1.5s' }} />
+            
+            {/* Grid Pattern */}
+            <div 
+                className="absolute inset-0 opacity-[0.03]"
+                style={{
+                    backgroundImage: `linear-gradient(to right, #fff 1px, transparent 1px),
+                                      linear-gradient(to bottom, #fff 1px, transparent 1px)`,
+                    backgroundSize: '60px 60px'
+                }}
+            />
+        </div>
+    );
+}
 
+// Feature Card Component
+function FeatureCard({ icon: Icon, title, description }: { icon: any, title: string, description: string }) {
+    return (
+        <div className="flex items-start gap-3 p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-colors">
+            <div className="p-2 rounded-lg bg-brand-500/20">
+                <Icon className="w-5 h-5 text-brand-300" />
+            </div>
+            <div>
+                <h3 className="text-sm font-semibold text-white">{title}</h3>
+                <p className="text-xs text-slate-400 mt-0.5">{description}</p>
+            </div>
+        </div>
+    );
+}
+
+export default function LoginPage() {
+    const router = useRouter();
+    const { user, login, isLoading, error } = useAuth();
+
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [focusedField, setFocusedField] = useState<string | null>(null);
+
+    // Redirect if already logged in
     useEffect(() => {
-        loadDashboardData();
-    }, []);
+        if (user) {
+            router.push('/dashboard');
+        }
+    }, [user, router]);
 
-    const loadDashboardData = async () => {
-        setIsLoading(true);
-        try {
-            const [faculty, logs, period] = await Promise.all([
-                listFaculty().catch(() => []),
-                getAttendanceLogs().catch(() => []),
-                getCurrentPeriod().catch(() => null),
-            ]);
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (isLoading) return;
 
-            setFacultyCount(faculty.length);
-            setRecentLogs(logs.slice(0, 5));
-            setCurrentPeriod(period);
-        } catch (error) {
-            console.error("Failed to load dashboard data:", error);
-        } finally {
-            setIsLoading(false);
+        const success = await login(email, password);
+        if (success) {
+            router.push('/dashboard');
         }
     };
 
-    const stats = {
-        faculty: facultyCount,
-        todayPresent: recentLogs.filter((l) => l.status === "Present").length,
-        todayTotal: recentLogs.length,
+    const handleDemoLogin = (email: string) => {
+        setEmail(email);
+        setPassword('password');
     };
 
     return (
-        <>
-            <NavBar />
-            <main className="dashboard">
-                <div className="dashboard__header">
-                    <h1 className="dashboard__title">Dashboard</h1>
-                    <p className="dashboard__subtitle">Faculty Presence Detection System</p>
-                </div>
+        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center p-4 relative overflow-hidden">
+            <ParticleBackground />
 
-                {/* Current Period Banner */}
-                {currentPeriod && (
-                    <div className="dashboard__period-banner">
-                        <div className="period-banner__icon">📅</div>
-                        <div className="period-banner__info">
-                            <span className="period-banner__label">Current Period</span>
-                            <span className="period-banner__value">
-                                {currentPeriod.faculty} • {currentPeriod.start} - {currentPeriod.end}
-                            </span>
+            <div className="relative w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                {/* Left Side - Branding & Info */}
+                <div className="hidden lg:block animate-fade-in-up">
+                    <div className="mb-8">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-500/10 border border-brand-500/20 mb-6">
+                            <Sparkles className="w-4 h-4 text-brand-400" />
+                            <span className="text-sm font-medium text-brand-300">Smart Attendance System</span>
                         </div>
-                    </div>
-                )}
-
-                {/* Stats Grid */}
-                <div className="dashboard__stats">
-                    <div className="stat-card">
-                        <div className="stat-card__icon stat-card__icon--purple">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                                <circle cx="9" cy="7" r="4" />
-                                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                            </svg>
-                        </div>
-                        <div className="stat-card__content">
-                            <span className="stat-card__value">{stats.faculty}</span>
-                            <span className="stat-card__label">Registered Faculty</span>
-                        </div>
+                        
+                        <h1 className="text-5xl font-bold text-white mb-4 leading-tight">
+                            Faculty Presence{' '}
+                            <span className="gradient-text-ocean">Detection</span>
+                        </h1>
+                        <p className="text-lg text-slate-400 max-w-md">
+                            Face recognition-based attendance system using computer vision and machine learning.
+                        </p>
                     </div>
 
-                    <div className="stat-card">
-                        <div className="stat-card__icon stat-card__icon--green">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                                <polyline points="22 4 12 14.01 9 11.01" />
-                            </svg>
-                        </div>
-                        <div className="stat-card__content">
-                            <span className="stat-card__value">{stats.todayPresent}</span>
-                            <span className="stat-card__label">Present Today</span>
-                        </div>
-                    </div>
-
-                    <div className="stat-card">
-                        <div className="stat-card__icon stat-card__icon--blue">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-                            </svg>
-                        </div>
-                        <div className="stat-card__content">
-                            <span className="stat-card__value">{stats.todayTotal}</span>
-                            <span className="stat-card__label">Total Checks</span>
-                        </div>
+                    <div className="space-y-3">
+                        <FeatureCard 
+                            icon={Shield}
+                            title="Secure & Reliable"
+                            description="Enterprise-grade security with encrypted data storage"
+                        />
+                        <FeatureCard 
+                            icon={Zap}
+                            title="Real-time Detection"
+                            description="Instant face recognition using YOLO and InsightFace"
+                        />
+                        <FeatureCard 
+                            icon={Users}
+                            title="Multi-role Access"
+                            description="Tailored dashboards for Admin, Director, HOD & Faculty"
+                        />
                     </div>
                 </div>
 
-                {/* Quick Actions */}
-                <div className="dashboard__section">
-                    <h2 className="dashboard__section-title">Quick Actions</h2>
-                    <div className="dashboard__actions">
-                        <Link href="/attendance" className="action-card">
-                            <div className="action-card__icon">📸</div>
-                            <div className="action-card__content">
-                                <h3>Check Attendance</h3>
-                                <p>Run manual or auto attendance check</p>
-                            </div>
-                        </Link>
-
-                        <Link href="/faculty/add" className="action-card">
-                            <div className="action-card__icon">➕</div>
-                            <div className="action-card__content">
-                                <h3>Add Faculty</h3>
-                                <p>Register a new faculty member</p>
-                            </div>
-                        </Link>
-
-                        <Link href="/schedule" className="action-card">
-                            <div className="action-card__icon">📅</div>
-                            <div className="action-card__content">
-                                <h3>Edit Schedule</h3>
-                                <p>Manage class timetable</p>
-                            </div>
-                        </Link>
-
-                        <Link href="/attendance/logs" className="action-card">
-                            <div className="action-card__icon">📊</div>
-                            <div className="action-card__content">
-                                <h3>View Logs</h3>
-                                <p>Browse attendance history</p>
-                            </div>
-                        </Link>
-                    </div>
-                </div>
-
-                {/* Recent Activity */}
-                <div className="dashboard__section">
-                    <div className="dashboard__section-header">
-                        <h2 className="dashboard__section-title">Recent Activity</h2>
-                        <Link href="/attendance/logs" className="dashboard__view-all">View all →</Link>
+                {/* Right Side - Login Form */}
+                <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+                    {/* Mobile Logo */}
+                    <div className="lg:hidden text-center mb-8">
+                        <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-brand-600 to-accent-purple rounded-2xl shadow-lg shadow-brand-500/30 mb-4">
+                            <GraduationCap className="w-8 h-8 text-white" />
+                        </div>
+                        <h1 className="text-2xl font-bold text-white">Faculty Presence System</h1>
+                        <p className="text-slate-400 mt-1">Sign in to continue</p>
                     </div>
 
-                    {isLoading ? (
-                        <div className="dashboard__loading">Loading...</div>
-                    ) : recentLogs.length > 0 ? (
-                        <div className="dashboard__activity">
-                            {recentLogs.map((log, i) => (
-                                <div key={i} className="activity-item">
-                                    <div className={`activity-item__status activity-item__status--${log.status}`} />
-                                    <div className="activity-item__content">
-                                        <span className="activity-item__name">{log.name || "Unknown"}</span>
-                                        <span className="activity-item__time">
-                                            {new Date(log.timestamp).toLocaleTimeString()}
-                                        </span>
+                    {/* Login Card */}
+                    <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl shadow-black/20 p-8 border border-white/20">
+                        <div className="hidden lg:block mb-6">
+                            <h2 className="text-2xl font-bold text-slate-900">Welcome Back</h2>
+                            <p className="text-slate-500 mt-1">Enter your credentials to access your account</p>
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="space-y-5">
+                            {error && (
+                                <Alert type="error" className="animate-shake">
+                                    {error}
+                                </Alert>
+                            )}
+
+                            {/* Email Field */}
+                            <div className="space-y-1.5">
+                                <label className={cn(
+                                    "block text-sm font-medium transition-colors",
+                                    focusedField === 'email' ? 'text-brand-600' : 'text-slate-700'
+                                )}>
+                                    Email Address
+                                </label>
+                                <div className="relative group">
+                                    <div className={cn(
+                                        "absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors",
+                                        focusedField === 'email' ? 'text-brand-500' : 'text-slate-400'
+                                    )}>
+                                        <Mail className="w-5 h-5" />
                                     </div>
-                                    <span className={`activity-item__badge activity-item__badge--${log.status}`}>
-                                        {log.status.replace("_", " ")}
-                                    </span>
+                                    <input
+                                        type="email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        onFocus={() => setFocusedField('email')}
+                                        onBlur={() => setFocusedField(null)}
+                                        placeholder="you@college.edu"
+                                        required
+                                        className={cn(
+                                            "w-full pl-12 pr-4 py-3 bg-slate-50 border-2 rounded-xl text-slate-900 placeholder-slate-400",
+                                            "transition-all duration-200 outline-none",
+                                            "focus:bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10",
+                                            "hover:border-slate-300"
+                                        )}
+                                    />
                                 </div>
-                            ))}
+                            </div>
+
+                            {/* Password Field */}
+                            <div className="space-y-1.5">
+                                <label className={cn(
+                                    "block text-sm font-medium transition-colors",
+                                    focusedField === 'password' ? 'text-brand-600' : 'text-slate-700'
+                                )}>
+                                    Password
+                                </label>
+                                <div className="relative group">
+                                    <div className={cn(
+                                        "absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors",
+                                        focusedField === 'password' ? 'text-brand-500' : 'text-slate-400'
+                                    )}>
+                                        <Lock className="w-5 h-5" />
+                                    </div>
+                                    <input
+                                        type={showPassword ? 'text' : 'password'}
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        onFocus={() => setFocusedField('password')}
+                                        onBlur={() => setFocusedField(null)}
+                                        placeholder="••••••••"
+                                        required
+                                        className={cn(
+                                            "w-full pl-12 pr-12 py-3 bg-slate-50 border-2 rounded-xl text-slate-900 placeholder-slate-400",
+                                            "transition-all duration-200 outline-none",
+                                            "focus:bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10",
+                                            "hover:border-slate-300"
+                                        )}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
+                                    >
+                                        {showPassword ? (
+                                            <EyeOff className="w-5 h-5" />
+                                        ) : (
+                                            <Eye className="w-5 h-5" />
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Remember & Forgot */}
+                            <div className="flex items-center justify-between text-sm">
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" className="w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500" />
+                                    <span className="text-slate-600">Remember me</span>
+                                </label>
+                                <a href="#" className="text-brand-600 hover:text-brand-700 font-medium">
+                                    Forgot password?
+                                </a>
+                            </div>
+
+                            {/* Submit Button */}
+                            <Button
+                                type="submit"
+                                disabled={isLoading}
+                                className="w-full"
+                                size="lg"
+                                variant="gradient"
+                            >
+                                {isLoading ? (
+                                    <>
+                                        <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                                        Signing in...
+                                    </>
+                                ) : (
+                                    'Sign In'
+                                )}
+                            </Button>
+                        </form>
+
+                        {/* Demo Credentials */}
+                        <div className="mt-8 pt-6 border-t border-slate-100">
+                            <p className="text-xs text-slate-500 text-center mb-4">
+                                Demo Credentials <span className="text-slate-400">(password: password)</span>
+                            </p>
+                            <div className="grid grid-cols-2 gap-2">
+                                {Object.entries(MOCK_USERS).map(([key, u]) => (
+                                    <button
+                                        key={key}
+                                        type="button"
+                                        onClick={() => handleDemoLogin(u.email)}
+                                        className={cn(
+                                            "px-3 py-2.5 rounded-xl text-left transition-all duration-200",
+                                            "bg-slate-50 hover:bg-brand-50 border border-slate-100 hover:border-brand-200",
+                                            "hover:shadow-md hover:-translate-y-0.5"
+                                        )}
+                                    >
+                                        <span className="font-semibold text-slate-700 text-xs block">
+                                            {ROLE_CONFIG[u.role].label}
+                                        </span>
+                                        <span className="text-slate-400 text-[10px] truncate block">{u.email}</span>
+                                    </button>
+                                ))}
+                            </div>
                         </div>
-                    ) : (
-                        <div className="dashboard__empty">No recent activity</div>
-                    )}
+                    </div>
+
+                    {/* Footer */}
+                    <p className="text-center text-sm text-slate-500 mt-6">
+                        © 2024 Faculty Presence System. All rights reserved.
+                    </p>
                 </div>
-
-                <style jsx>{`
-          .dashboard { min-height: 100vh; padding: 2rem; background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%); color: #f1f5f9; }
-          .dashboard__header { margin-bottom: 2rem; }
-          .dashboard__title { font-size: 2.5rem; font-weight: 700; margin: 0; background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-          .dashboard__subtitle { color: #94a3b8; margin: 0.5rem 0 0; }
-
-          .dashboard__period-banner { display: flex; align-items: center; gap: 1rem; padding: 1rem 1.25rem; background: linear-gradient(135deg, rgba(99,102,241,0.15) 0%, rgba(139,92,246,0.15) 100%); border: 1px solid rgba(99,102,241,0.3); border-radius: 12px; margin-bottom: 2rem; }
-          .period-banner__icon { font-size: 1.5rem; }
-          .period-banner__info { display: flex; flex-direction: column; }
-          .period-banner__label { font-size: 0.75rem; color: #a5b4fc; text-transform: uppercase; letter-spacing: 0.05em; }
-          .period-banner__value { font-weight: 600; color: #e2e8f0; }
-
-          .dashboard__stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; margin-bottom: 2.5rem; }
-          .stat-card { display: flex; align-items: center; gap: 1rem; padding: 1.25rem; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; }
-          .stat-card__icon { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 12px; }
-          .stat-card__icon--purple { background: rgba(99,102,241,0.15); color: #a5b4fc; }
-          .stat-card__icon--green { background: rgba(34,197,94,0.15); color: #86efac; }
-          .stat-card__icon--blue { background: rgba(59,130,246,0.15); color: #93c5fd; }
-          .stat-card__content { display: flex; flex-direction: column; }
-          .stat-card__value { font-size: 1.75rem; font-weight: 700; color: #f1f5f9; }
-          .stat-card__label { font-size: 0.8rem; color: #64748b; }
-
-          .dashboard__section { margin-bottom: 2rem; }
-          .dashboard__section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-          .dashboard__section-title { font-size: 1.25rem; font-weight: 600; margin: 0 0 1rem; color: #e2e8f0; }
-          .dashboard__view-all { color: #818cf8; text-decoration: none; font-size: 0.9rem; }
-          .dashboard__view-all:hover { text-decoration: underline; }
-
-          .dashboard__actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
-          .action-card { display: flex; align-items: center; gap: 1rem; padding: 1.25rem; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; text-decoration: none; color: inherit; transition: all 0.2s; }
-          .action-card:hover { background: rgba(255,255,255,0.06); border-color: rgba(99,102,241,0.4); transform: translateY(-2px); }
-          .action-card__icon { font-size: 1.5rem; }
-          .action-card__content h3 { margin: 0; font-size: 1rem; font-weight: 600; color: #f1f5f9; }
-          .action-card__content p { margin: 0.25rem 0 0; font-size: 0.8rem; color: #64748b; }
-
-          .dashboard__activity { display: flex; flex-direction: column; gap: 0.5rem; }
-          .activity-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.875rem 1rem; background: rgba(255,255,255,0.02); border-radius: 8px; }
-          .activity-item__status { width: 8px; height: 8px; border-radius: 50%; }
-          .activity-item__status--Present { background: #22c55e; }
-          .activity-item__status--Absent { background: #eab308; }
-          .activity-item__status--Error { background: #ef4444; }
-          .activity-item__content { flex: 1; display: flex; justify-content: space-between; }
-          .activity-item__name { font-weight: 500; color: #e2e8f0; }
-          .activity-item__time { font-size: 0.8rem; color: #64748b; }
-          .activity-item__badge { padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.7rem; font-weight: 500; text-transform: capitalize; }
-          .activity-item__badge--Present { background: rgba(34,197,94,0.15); color: #86efac; }
-          .activity-item__badge--Absent { background: rgba(234,179,8,0.15); color: #fde047; }
-          .activity-item__badge--Error { background: rgba(239,68,68,0.15); color: #fca5a5; }
-
-          .dashboard__loading, .dashboard__empty { padding: 2rem; text-align: center; color: #64748b; }
-        `}</style>
-            </main>
-        </>
+            </div>
+        </div>
     );
 }

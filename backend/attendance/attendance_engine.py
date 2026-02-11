@@ -1,7 +1,5 @@
-import os
 import cv2
 import time
-import pandas as pd
 from datetime import datetime
 import threading
 
@@ -11,14 +9,8 @@ from ..inference.face_detect import detect_faces_yolo
 from ..inference.embeddings import get_face_embedding
 from ..recognition.faculty_manager import search_faculty, search_faculty_specific
 from ..recognition.faiss_store import load_faculty_database
-
-# Path relative to the backend directory (attendance/../)
-_BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-LOG_FILE = os.path.join(_BACKEND_DIR, "attendance_log.csv")
-
-# Initialize log file if it doesn't exist
-if not os.path.exists(LOG_FILE):
-    pd.DataFrame(columns=["timestamp", "status", "name", "confidence", "period", "mode"]).to_csv(LOG_FILE, index=False)
+from ..config.config_store import DEFAULT_CONFIG
+from .. import db
 
 def log_attendance(status, name, confidence, period_info, mode):
     """Logs an attendance entry to the CSV file."""
@@ -32,30 +24,15 @@ def log_attendance(status, name, confidence, period_info, mode):
         else:
             period_str = str(period_info)
     
-    try:
-        # Read, append, and save to avoid file corruption
-        try:
-            df = pd.read_csv(LOG_FILE)
-        except pd.errors.EmptyDataError:
-            df = pd.DataFrame(columns=["timestamp", "status", "name", "confidence", "period", "mode"])
-
-        row = {
-            "timestamp": ts, 
-            "status": status, 
-            "name": name, 
-            "confidence": f"{confidence:.4f}",
-            "period": period_str,
-            "mode": mode
-        }
-        
-        # Use concat instead of loc for robustness
-        new_row_df = pd.DataFrame([row])
-        df = pd.concat([df, new_row_df], ignore_index=True)
-        
-        df.to_csv(LOG_FILE, index=False)
-    except Exception as e:
-        print(f"Failed to save to log: {e}")
-        pass
+    db.init_db(DEFAULT_CONFIG)
+    db.add_attendance_log({
+        "timestamp": ts,
+        "status": status,
+        "name": name,
+        "confidence": round(float(confidence), 4) if confidence is not None else None,
+        "period": period_str,
+        "mode": mode
+    })
 
 def perform_attendance_check(yolo_model, insightface_app, config=None, target_faculty=None, period_info=None, mode="manual"):
     """

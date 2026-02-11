@@ -1,10 +1,7 @@
-import json
-import os
 from datetime import datetime
 
-# Path relative to the backend directory (attendance/../)
-_BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SCHEDULE_FILE = os.path.join(_BACKEND_DIR, "schedule.json")
+from .. import db
+from ..config.config_store import DEFAULT_CONFIG
 
 # Default Schedule for initialization
 DEFAULT_SCHEDULE = [
@@ -16,21 +13,17 @@ DEFAULT_SCHEDULE = [
 
 def load_schedule():
     """Loads schedule from JSON file, creates default if missing."""
-    if not os.path.exists(SCHEDULE_FILE):
+    db.init_db(DEFAULT_CONFIG)
+    data = db.get_schedule()
+    if not data:
         save_schedule(DEFAULT_SCHEDULE)
         return DEFAULT_SCHEDULE
-    
-    try:
-        with open(SCHEDULE_FILE, 'r') as f:
-            return json.load(f)
-    except Exception:
-        return DEFAULT_SCHEDULE
+    return data
 
 def save_schedule(schedule_data):
     """Saves schedule list to JSON file."""
-    with open(SCHEDULE_FILE, 'w') as f:
-        json.dump(schedule_data, f, indent=4)
-    return True
+    db.init_db(DEFAULT_CONFIG)
+    return db.save_schedule(schedule_data)
 
 def get_current_period():
     """Returns the current period dict if active, else None."""

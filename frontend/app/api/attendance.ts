@@ -45,7 +45,7 @@ export interface ClearLogsResponse {
 export async function manualAttendanceCheck(
     targetFaculty?: string
 ): Promise<ManualCheckResponse> {
-    const response = await fetch(`${API_BASE}/attendance/attendance/manual`, {
+    const response = await fetch(`${API_BASE}/attendance/manual`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -66,7 +66,7 @@ export async function manualAttendanceCheck(
  * Runs in background according to schedule
  */
 export async function startAutoAttendance(): Promise<AutoAttendanceResponse> {
-    const response = await fetch(`${API_BASE}/attendance/attendance/auto/start`, {
+    const response = await fetch(`${API_BASE}/attendance/auto/start`, {
         method: "POST",
     });
 
@@ -82,7 +82,7 @@ export async function startAutoAttendance(): Promise<AutoAttendanceResponse> {
  * Stop the automated attendance loop
  */
 export async function stopAutoAttendance(): Promise<AutoAttendanceResponse> {
-    const response = await fetch(`${API_BASE}/attendance/attendance/auto/stop`, {
+    const response = await fetch(`${API_BASE}/attendance/auto/stop`, {
         method: "POST",
     });
 
@@ -99,7 +99,7 @@ export async function stopAutoAttendance(): Promise<AutoAttendanceResponse> {
  * @returns Array of attendance log records sorted by timestamp
  */
 export async function getAttendanceLogs(): Promise<AttendanceLog[]> {
-    const response = await fetch(`${API_BASE}/attendance/attendance/logs`);
+    const response = await fetch(`${API_BASE}/attendance/logs`);
 
     if (!response.ok) {
         const error = await response.json().catch(() => ({}));
@@ -115,7 +115,7 @@ export async function getAttendanceLogs(): Promise<AttendanceLog[]> {
  * WARNING: This deletes all historical attendance data
  */
 export async function clearAttendanceLogs(): Promise<ClearLogsResponse> {
-    const response = await fetch(`${API_BASE}/attendance/attendance/logs/clear`, {
+    const response = await fetch(`${API_BASE}/attendance/logs/clear`, {
         method: "POST",
     });
 
