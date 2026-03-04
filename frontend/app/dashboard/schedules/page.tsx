@@ -76,7 +76,7 @@ export default function SchedulesPage() {
             <Header
                 title="Schedule Management"
                 subtitle="Configure class schedules and faculty assignments"
-                actions={
+                action={
                     <div className="flex gap-2">
                         <Button variant="secondary" icon={Plus} onClick={handleAddPeriod}>
                             Add Period

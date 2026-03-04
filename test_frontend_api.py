@@ -2,8 +2,6 @@
 """Test all frontend API endpoints"""
 
 import requests
-import json
-
 BASE_URL = "http://localhost:8000"
 
 def test_endpoint(method, path, data=None, description=""):
@@ -64,7 +62,14 @@ def main():
     print("\n4. Config API (/config)")
     print("-"*50)
     results.append(test_endpoint("GET", "/config/config", description="getConfig"))
-    results.append(test_endpoint("POST", "/config/config/update", {"detection_time": 45}, description="updateConfig"))
+    results.append(test_endpoint("POST", "/config/config/update", {
+        "detection_time": 45,
+        "threshold": 0.7,
+        "sender_email": "",
+        "sender_password": "",
+        "email_receiver": "example_receiver@mail.com",
+        "notification_mode": "Absent Only"
+    }, description="updateConfig"))
     results.append(test_endpoint("POST", "/config/config/reset", description="resetConfig"))
     results.append(test_endpoint("PATCH", "/config/config/update", {"threshold": 0.7}, description="patchConfig"))
     
@@ -83,17 +88,23 @@ def main():
     # Notification API
     print("\n7. Notification API (/notify)")
     print("-"*50)
-    results.append(test_endpoint("GET", "/notify/alerts", description="getAlerts"))
-    results.append(test_endpoint("POST", "/notify/test-email", description="testEmail"))
-    results.append(test_endpoint("POST", "/notify/alerts/read", {"alert_id": 1}, description="markAlertRead"))
+    results.append(test_endpoint("POST", "/notify/auto", {
+        "event": "Present",
+        "name": "Test User",
+        "confidence": 0.99,
+        "faculty": "Test Faculty",
+        "mode": "manual"
+    }, description="autoNotify"))
     
     # Corrections API
     print("\n8. Corrections API (/corrections)")
     print("-"*50)
     results.append(test_endpoint("GET", "/corrections/list", description="listCorrections"))
-    results.append(test_endpoint("POST", "/corrections/request", {"faculty": "Test", "date": "2024-01-01", "reason": "Test"}, description="createCorrection"))
-    results.append(test_endpoint("POST", "/corrections/approve", {"correction_id": 1}, description="approveCorrection"))
-    results.append(test_endpoint("POST", "/corrections/reject", {"correction_id": 1}, description="rejectCorrection"))
+    results.append(test_endpoint("POST", "/corrections/request", {
+        "faculty_name": "Test Faculty",
+        "date": "2024-01-01",
+        "reason": "Testing correction request"
+    }, description="createCorrection"))
     
     # DVR API
     print("\n9. DVR API (/dvr)")
@@ -103,13 +114,12 @@ def main():
     # Export API
     print("\n10. Export API (/export)")
     print("-"*50)
-    results.append(test_endpoint("POST", "/export/attendance", description="exportAttendance"))
+    results.append(test_endpoint("GET", "/export/attendance-logs", description="exportAttendance"))
     
     # Health API
     print("\n11. Health API (/health)")
     print("-"*50)
     results.append(test_endpoint("GET", "/health", description="healthCheck"))
-    results.append(test_endpoint("GET", "/health/detailed", description="detailedHealth"))
     
     # Summary
     print("\n" + "="*70)

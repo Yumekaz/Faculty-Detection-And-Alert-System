@@ -2,6 +2,7 @@ import cv2
 import time
 from datetime import datetime
 import threading
+import os
 
 # Import dependencies from sibling microservices
 # Note: These assume the backend package structure is maintained

@@ -2,8 +2,6 @@
 """Test script for backend endpoints"""
 
 import requests
-import json
-
 BASE_URL = "http://localhost:8000"
 
 def test_endpoint(method, path, data=None, description=""):
@@ -42,7 +40,6 @@ def main():
     print("-"*40)
     results.append(test_endpoint("GET", "/", description="Root"))
     results.append(test_endpoint("GET", "/health", description="Health"))
-    results.append(test_endpoint("GET", "/health/detailed", description="Health Detailed"))
     
     # Test 2: Faculty endpoints
     print("\n2. Testing Faculty Endpoints")
@@ -76,8 +73,15 @@ def main():
     print("\n5. Testing Config Endpoints")
     print("-"*40)
     results.append(test_endpoint("GET", "/config/config", description="Get Config"))
-    results.append(test_endpoint("POST", "/config/config/update", 
-                                {"detection_time": 45}, 
+    results.append(test_endpoint("POST", "/config/config/update",
+                                {
+                                    "detection_time": 45,
+                                    "threshold": 0.7,
+                                    "sender_email": "",
+                                    "sender_password": "",
+                                    "email_receiver": "example_receiver@mail.com",
+                                    "notification_mode": "Absent Only"
+                                },
                                 description="Update Config"))
     
     # Test 6: Audit endpoints
@@ -88,15 +92,22 @@ def main():
     # Test 7: Notification endpoints
     print("\n7. Testing Notification Endpoints")
     print("-"*40)
-    results.append(test_endpoint("GET", "/notify/alerts", description="Get Alerts"))
-    results.append(test_endpoint("POST", "/notify/test-email", description="Test Email"))
+    results.append(test_endpoint("POST", "/notify/auto",
+                                {
+                                    "event": "Present",
+                                    "name": "Test User",
+                                    "confidence": 0.99,
+                                    "faculty": "Dr. Smith",
+                                    "mode": "manual"
+                                },
+                                description="Auto Notify"))
     
     # Test 8: Corrections endpoints
     print("\n8. Testing Corrections Endpoints")
     print("-"*40)
     results.append(test_endpoint("GET", "/corrections/list", description="List Corrections"))
     results.append(test_endpoint("POST", "/corrections/request", 
-                                {"faculty": "Dr. Smith", "date": "2024-01-01", "reason": "Test"}, 
+                                {"faculty_name": "Dr. Smith", "date": "2024-01-01", "reason": "Testing correction request"},
                                 description="Request Correction"))
     
     # Test 9: DVR endpoints
@@ -107,7 +118,7 @@ def main():
     # Test 10: Export endpoints
     print("\n10. Testing Export Endpoints")
     print("-"*40)
-    results.append(test_endpoint("POST", "/export/attendance", description="Export Attendance"))
+    results.append(test_endpoint("GET", "/export/attendance-logs", description="Export Attendance"))
     
     # Summary
     print("\n" + "="*70)

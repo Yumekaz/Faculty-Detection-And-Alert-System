@@ -31,7 +31,7 @@ export default function AuditPage() {
             <Header
                 title="Audit Trail"
                 subtitle="Track critical system actions"
-                actions={
+                action={
                     <Button variant="secondary" icon={Download} onClick={() => (window.location.href = auditExportUrl())}>
                         Export CSV
                     </Button>

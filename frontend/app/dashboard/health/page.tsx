@@ -99,7 +99,7 @@ export default function HealthPage() {
             <Header
                 title="System Health"
                 subtitle="Monitor backend services and connectivity"
-                actions={
+                action={
                     <Button variant="secondary" icon={RefreshCw} onClick={checkHealth}>
                         Refresh
                     </Button>

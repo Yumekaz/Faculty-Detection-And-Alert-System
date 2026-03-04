@@ -311,7 +311,7 @@ function AdminDashboard() {
                         <h3 className="text-lg font-bold text-slate-900">Recent Activity</h3>
                         <p className="text-sm text-slate-500">Latest attendance detections</p>
                     </div>
-                    <Button variant="ghost" size="sm" href="/dashboard/logs">
+                    <Button variant="ghost" size="sm" onClick={() => { window.location.href = '/dashboard/logs'; }}>
                         View All
                     </Button>
                 </div>

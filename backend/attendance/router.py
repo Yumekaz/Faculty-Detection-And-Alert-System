@@ -29,7 +29,7 @@ class ScheduleUpdatePayload(BaseModel):
 
 # --- Endpoints ---
 
-@router.post("/attendance/manual")
+@router.post("/manual")
 async def manual_attendance_check(payload: ManualCheckPayload):
     """Trigger a single immediate attendance check."""
     ensure_models_loaded(require_insightface=True)
@@ -51,7 +51,7 @@ async def manual_attendance_check(payload: ManualCheckPayload):
     log_event("attendance_manual", "success", f"matched={matched} name={name}", payload.target_faculty or "system")
     return result
 
-@router.post("/attendance/auto/start")
+@router.post("/auto/start")
 async def start_auto_attendance():
     """Start the background automated attendance loop."""
     ensure_models_loaded(require_insightface=True)
@@ -68,14 +68,14 @@ async def start_auto_attendance():
     log_event("attendance_auto_start", "success", message, "system")
     return {"status": "success", "message": message}
 
-@router.post("/attendance/auto/stop")
+@router.post("/auto/stop")
 async def stop_auto_attendance():
     """Stop the background automated attendance loop."""
     success, message = attendance_engine.stop_auto_attendance_loop()
     log_event("attendance_auto_stop", "success", message, "system")
     return {"status": "success", "message": message}
 
-@router.get("/attendance/logs")
+@router.get("/logs")
 async def get_logs():
     """Return logs as JSON records."""
     try:
@@ -85,7 +85,7 @@ async def get_logs():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error reading logs: {str(e)}")
 
-@router.post("/attendance/logs/clear")
+@router.post("/logs/clear")
 async def clear_logs():
     """Clear the attendance log file."""
     try:

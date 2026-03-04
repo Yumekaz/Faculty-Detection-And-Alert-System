@@ -121,7 +121,7 @@ export default function FacultyPage() {
             <Header
                 title="Faculty Management"
                 subtitle="Manage faculty enrollment and biometric data"
-                actions={
+                action={
                     <div className="flex gap-2">
                         <Button variant="secondary" icon={RefreshCw} onClick={loadFacultyFromBackend}>
                             Refresh
@@ -152,7 +152,7 @@ export default function FacultyPage() {
             </Card>
 
             {/* Faculty Table */}
-            <Card padding={false}>
+            <Card padding="none">
                 {isLoading ? (
                     <div className="py-12 flex items-center justify-center">
                         <Loader2 className="w-8 h-8 animate-spin text-slate-400" />

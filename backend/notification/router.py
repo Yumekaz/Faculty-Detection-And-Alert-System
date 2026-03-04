@@ -25,7 +25,7 @@ class AutoNotificationPayload(BaseModel):
 
 # --- Endpoints ---
 
-@router.post("/notify/send")
+@router.post("/send")
 async def send_notification(payload: EmailPayload):
     """Generic endpoint to send an email."""
     config = load_config()
@@ -46,7 +46,7 @@ async def send_notification(payload: EmailPayload):
     log_event("email_send", "success", payload.subject, receiver)
     return {"status": "success", "message": "Email sent"}
 
-@router.post("/notify/test")
+@router.post("/test")
 async def test_notification():
     """Test email configuration."""
     config = load_config()
@@ -70,7 +70,7 @@ async def test_notification():
     log_event("email_test", "success", "Test email sent", receiver)
     return {"status": "success", "message": f"Test email sent to {receiver}"}
 
-@router.post("/notify/auto")
+@router.post("/auto")
 async def auto_notification(payload: AutoNotificationPayload, background_tasks: BackgroundTasks):
     """
     Handles automated notifications based on attendance events.

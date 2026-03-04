@@ -84,7 +84,7 @@ export default function LogsPage() {
             <Header
                 title="Attendance Logs"
                 subtitle="View attendance detection history"
-                actions={
+                action={
                     <div className="flex items-center gap-2">
                         <Badge variant="default" size="lg">
                             <Lock className="w-3 h-3 mr-1" />

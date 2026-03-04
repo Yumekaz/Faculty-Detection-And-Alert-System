@@ -75,7 +75,7 @@ const testFunctions: Record<string, () => Promise<any>> = {
         return await res.json();
     },
     detection: async () => {
-        const res = await fetch(`${API_BASE}/attendance/attendance/manual`, {
+        const res = await fetch(`${API_BASE}/attendance/manual`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ target_faculty: null })
@@ -84,7 +84,7 @@ const testFunctions: Record<string, () => Promise<any>> = {
         return await res.json();
     },
     logs: async () => {
-        const res = await fetch(`${API_BASE}/attendance/attendance/logs`);
+        const res = await fetch(`${API_BASE}/attendance/logs`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         return { logCount: data.logs?.length || 0 };

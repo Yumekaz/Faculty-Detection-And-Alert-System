@@ -4,16 +4,28 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 # --- Import Routers from All Microservices ---
-from inference.router import router as inference_router
-from recognition.router import router as recognition_router
-from attendance.router import router as attendance_router
-from config.router import router as config_router
-from notification.router import router as notification_router
-from dvr.router import router as dvr_router
-from audit.router import router as audit_router
-from corrections.router import router as corrections_router
-from health.router import router as health_router
-from export.router import router as export_router
+try:
+    from .inference.router import router as inference_router
+    from .recognition.router import router as recognition_router
+    from .attendance.router import router as attendance_router
+    from .config.router import router as config_router
+    from .notification.router import router as notification_router
+    from .dvr.router import router as dvr_router
+    from .audit.router import router as audit_router
+    from .corrections.router import router as corrections_router
+    from .health.router import router as health_router
+    from .export.router import router as export_router
+except ImportError:
+    from inference.router import router as inference_router
+    from recognition.router import router as recognition_router
+    from attendance.router import router as attendance_router
+    from config.router import router as config_router
+    from notification.router import router as notification_router
+    from dvr.router import router as dvr_router
+    from audit.router import router as audit_router
+    from corrections.router import router as corrections_router
+    from health.router import router as health_router
+    from export.router import router as export_router
 
 
 # --- Create FastAPI App ---
